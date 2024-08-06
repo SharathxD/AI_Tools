@@ -6,6 +6,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
+#import langchain.embeddings as le
 import langchain_google_genai
 import youtube_transcript_api
 
@@ -18,7 +19,7 @@ if 'chat_history' not in st.session_state:
     st.session_state['chat_history'] = []
 
 # Streamlit configuration
-st.set_page_config(page_title="Tools.ai ", page_icon="✨", layout="wide")
+st.set_page_config(page_title="Your AI ", page_icon="🌐", layout="wide")
 
 # Function to configure Google API key
 def configure_api_key(api_key):
@@ -66,7 +67,7 @@ def get_conversational_chain():
 
     Answer:
     """
-    model = langchain_google_genai.ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3,google_api_key=api_key_input)
+    model = genai.ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
     prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
     chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
     return chain
@@ -95,7 +96,7 @@ def generate_gemini_content(transcript_text, prompt):
         return None
 
 # Streamlit interface
-st.title("AI Tools")
+st.title("AI Application")
 
 with st.sidebar:
     st.header("Navigation")
@@ -108,7 +109,7 @@ with st.sidebar:
         st.success("API Key set successfully!")
 
 if page == "ChatBot":
-    st.title("ChatBot")
+    st.header("ChatBot")
     user_input = st.text_input("Input:", key="input")
     submit = st.button("Ask the Question")
     if submit and user_input:
@@ -124,7 +125,7 @@ if page == "ChatBot":
         st.write(f"{role}: {text}")
 
 elif page == "Image Captioning":
-    st.title("Image Captioning")
+    st.header("Image Captioning")
     uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
     if uploaded_file is not None and st.button('Upload'):
         try:
@@ -140,28 +141,18 @@ elif page == "Image Captioning":
                 st.error("API Key is not configured. Please add your API key in the navbar.")
         except Exception as e:
             st.error(f"Failed to generate caption due to: {str(e)}")
-elif page == "PDF Reader":
-    st.title("PDF Reader")
-    uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
 
-    #user_question = st.text_input("Ask a question about the PDF content:")
-    
+elif page == "PDF Reader":
+    st.header("PDF Reader")
+    uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
     if uploaded_files:
         text = get_pdf_text(uploaded_files)
         text_chunks = get_text_chunks(text)
         get_vector_store(text_chunks)
-        
-        st.write("PDF text and vector store created successfully! TEXTING FEATURE COMING SOON !")
+        st.write("PDF text and vector store created successfully! text feature coming SOON")
 
-        #if user_question:
-         #   chain = get_conversational_chain()
-          #  context = " ".join(text_chunks)  # Combine all chunks for context
-           # answer = chain.run(context=context, question=user_question)
-            #st.write("Answer:")
-            #st.write(answer)
-
-elif page == "YouTube Summary":
-    st.title("YouTube Video Summarizer")
+elif page == "YouTube Summarizer":
+    st.header("YouTube Video Summarizer")
     youtube_link = st.text_input("Enter the YouTube Video URL:")
     if youtube_link:
         video_id = youtube_link.split("=")[1]
