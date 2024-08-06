@@ -96,7 +96,7 @@ def generate_gemini_content(transcript_text, prompt):
         return None
 
 # Streamlit interface
-st.title("AI Application")
+st.title("AI Tools")
 
 with st.sidebar:
     st.header("Navigation")
