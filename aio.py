@@ -6,22 +6,19 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
-#import langchain.embeddings as le
 import langchain_google_genai
 import youtube_transcript_api
 
 
-# Initialize session state
+
 if 'api_key' not in st.session_state:
     st.session_state['api_key'] = None
 
 if 'chat_history' not in st.session_state:
     st.session_state['chat_history'] = []
 
-# Streamlit configuration
-st.set_page_config(page_title="Your AI ", page_icon="🌐", layout="wide")
+st.set_page_config(page_title="Tools AI", page_icon="🌐", layout="wide")
 
-# Function to configure Google API key
 def configure_api_key(api_key):
     st.session_state['api_key'] = api_key
     genai.configure(api_key=api_key)
@@ -96,20 +93,37 @@ def generate_gemini_content(transcript_text, prompt):
         return None
 
 # Streamlit interface
-st.title("AI Application")
+st.title("AI Tools ")
 
 with st.sidebar:
     st.header("Navigation")
-    page = st.selectbox("Go to", ["ChatBot", "Image Captioning", "PDF Reader", "YouTube Summarizer"])
+    page = st.selectbox("Go to", ["Home ","ChatBot", "Image Captioning", "PDF Reader", "YouTube Summarizer"])
     
     st.header("API Key Configuration")
     api_key_input = st.text_input("Enter your Google API Key", type="password")
     if st.button("Set API Key"):
         configure_api_key(api_key_input)
         st.success("API Key set successfully!")
+    st.markdown("Don't have an API key? Generate [Here](https://aistudio.google.com/app/apikey)")
+
+if page == "Home":
+    st.header("Welcome to the AI Tools Application")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.image("image1.jpg", use_column_width=True)
+        st.image("image2.jpg", use_column_width=True)
+    
+    with col2:
+        st.image("image3.jpeg", use_column_width=True)
+        st.image("image4.jpeg", use_column_width=True)
+    
+    with col3:
+        st.image("image5.jpeg", use_column_width=True)
+        st.image("image6.jpeg", use_column_width=True)
 
 if page == "ChatBot":
-    st.header("ChatBot")
+    st.title("ChatBot Service")
     user_input = st.text_input("Input:", key="input")
     submit = st.button("Ask the Question")
     if submit and user_input:
@@ -125,7 +139,7 @@ if page == "ChatBot":
         st.write(f"{role}: {text}")
 
 elif page == "Image Captioning":
-    st.header("Image Captioning")
+    st.title("Generate Caption with Hashtags")
     uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
     if uploaded_file is not None and st.button('Upload'):
         try:
@@ -133,7 +147,7 @@ elif page == "Image Captioning":
                 genai.configure(api_key=st.session_state['api_key'])
                 model = genai.GenerativeModel('gemini-1.5-flash')
                 img = Image.open(uploaded_file)
-                caption = model.generate_content(["Write a caption for the image in English", img])
+                caption = model.generate_content(["Write a short caption with 20 words for the image in English", img])
                 tags = model.generate_content(["Generate 10 trending hashtags for the image in a line in English", img])
                 st.image(img, caption=f"Caption: {caption.text}")
                 st.write(f"Tags: {tags.text}")
