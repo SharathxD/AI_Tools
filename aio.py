@@ -188,22 +188,22 @@ try:
             except Exception as e:
                 st.error(f"Failed to generate caption due to: {str(e)}")
 
-elif page == "PDF Reader":
-    st.header("PDF Reader")
-    uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
-    if uploaded_files:
-        text = get_pdf_text(uploaded_files)
-        text_chunks = get_text_chunks(text)
-        get_vector_store(text_chunks)
-        st.write("PDF text and vector store created successfully! text feature coming SOON")
+    elif page == "PDF Reader":
+        st.header("PDF Reader")
+        uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
+        if uploaded_files:
+            text = get_pdf_text(uploaded_files)
+            text_chunks = get_text_chunks(text)
+            get_vector_store(text_chunks)
+            st.write("PDF text and vector store created successfully! text feature coming SOON")
 
-elif page == "YouTube Summarizer":
-    st.header("YouTube Video Summarizer")
-    youtube_link = st.text_input("Enter the YouTube Video URL:")
-    if youtube_link:
-        video_id = youtube_link.split("=")[1]
-        st.image(f"http://img.youtube.com/vi/{video_id}/0.jpg", use_column_width=True)
-
+    elif page == "YouTube Summarizer":
+        st.header("YouTube Video Summarizer")
+        youtube_link = st.text_input("Enter the YouTube Video URL:")
+        if youtube_link:
+            video_id = youtube_link.split("=")[1]
+            st.image(f"http://img.youtube.com/vi/{video_id}/0.jpg", use_column_width=True)
+    
         if st.button("Get Summary"):
             transcript_text = extract_transcript_details(youtube_link)
             if transcript_text:
