@@ -9,8 +9,6 @@ from langchain.prompts import PromptTemplate
 import langchain_google_genai
 import youtube_transcript_api
 
-
-
 if 'api_key' not in st.session_state:
     st.session_state['api_key'] = None
 
@@ -50,7 +48,7 @@ def get_text_chunks(text):
 
 # Function to get vector store
 def get_vector_store(text_chunks):
-    embeddings = langchain_google_genai.GoogleGenerativeAIEmbeddings(model="models/embedding-001",google_api_key=api_key_input)
+    embeddings = langchain_google_genai.GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=st.session_state['api_key'])
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     vector_store.save_local("faiss_index")
 
@@ -73,13 +71,13 @@ def get_conversational_chain():
 def extract_transcript_details(youtube_video_url):
     try:
         video_id = youtube_video_url.split("=")[1]
-        transcript_text = youtube_transcript_api.YouTubeTranscriptApi.get_transcript(video_id,languages = ('en', ))
+        transcript_text = youtube_transcript_api.YouTubeTranscriptApi.get_transcript(video_id, languages=('en',))
         transcript = ""
         for i in transcript_text:
             transcript += " " + i["text"]
         return transcript
-    except Exception :
-        st.error(f"Error extracting transcript: No Transcription available in English !  Other languages coming soon ")
+    except Exception:
+        st.error("Error extracting transcript: No Transcription available in English! Other languages coming soon.")
         return None
 
 # Function to generate summary from transcript
@@ -93,88 +91,86 @@ def generate_gemini_content(transcript_text, prompt):
         return None
 
 # Streamlit interface
-st.title("AI Tools ")
+try:
+    st.title("AI Tools ")
 
-with st.sidebar:
-    st.header("Navigation")
-    page = st.selectbox("Go to", ["Home ","ChatBot", "Image Captioning", "PDF Reader", "YouTube Summarizer"])
-    
-    st.header("API Key Configuration")
-    api_key_input = st.text_input("Enter your Google API Key", type="password")
-    if st.button("Set API Key"):
-        configure_api_key(api_key_input)
-        st.success("API Key set successfully!")
-    st.markdown("Don't have an API key? Generate [Here](https://aistudio.google.com/app/apikey)")
+    with st.sidebar:
+        st.header("Navigation")
+        page = st.selectbox("Go to", ["Home", "ChatBot", "Image Captioning", "PDF Reader", "YouTube Summarizer"])
 
-if page == "Home":
-    st.header("Welcome to the AI Tools Application")
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.image("image1.jpg", use_column_width=True)
-        st.image("image2.jpg", use_column_width=True)
-    
-    with col2:
-        st.image("image3.jpeg", use_column_width=True)
-        st.image("image4.jpeg", use_column_width=True)
-    
-    with col3:
-        st.image("image5.jpeg", use_column_width=True)
-        st.image("image6.jpeg", use_column_width=True)
+        st.header("API Key Configuration")
+        api_key_input = st.text_input("Enter your Google API Key", type="password")
+        if st.button("Set API Key"):
+            configure_api_key(api_key_input)
+            st.success("API Key set successfully!")
+        st.markdown("Don't have an API key? Generate [Here](https://aistudio.google.com/app/apikey)")
 
-if page == "ChatBot":
-    st.title("ChatBot Service")
-    user_input = st.text_input("Input:", key="input")
-    submit = st.button("Ask the Question")
-    if submit and user_input:
-        response = get_gemini_response(user_input)
-        st.session_state['chat_history'].append(("You", user_input))
-        st.subheader("Response")
-        for chunk in response:
-            st.write(chunk.text)
-            st.session_state['chat_history'].append(("Bot", chunk.text))
+    if page == "Home":
+        st.header("Welcome to the AI Tools Application")
+        images = ["image1.jpg", "image2.jpg", "image3.jpg", "image4.jpg", "image5.jpg", "image6.jpg"]
+        cols = st.columns(3)
+        
+        for idx, image_path in enumerate(images):
+            with cols[idx % 3]:
+                st.image(image_path, use_column_width=True)
 
-    st.subheader("Chat History")
-    for role, text in st.session_state['chat_history']:
-        st.write(f"{role}: {text}")
+    if page == "ChatBot":
+        st.title("ChatBot Service")
+        user_input = st.text_input("Input:", key="input")
+        submit = st.button("Ask the Question")
+        if submit and user_input:
+            response = get_gemini_response(user_input)
+            st.session_state['chat_history'].append(("You", user_input))
+            st.subheader("Response")
+            for chunk in response:
+                st.write(chunk.text)
+                st.session_state['chat_history'].append(("Bot", chunk.text))
 
-elif page == "Image Captioning":
-    st.title("Generate Caption with Hashtags")
-    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
-    if uploaded_file is not None and st.button('Upload'):
-        try:
-            if st.session_state['api_key']:
-                genai.configure(api_key=st.session_state['api_key'])
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                img = Image.open(uploaded_file)
-                caption = model.generate_content(["Write a short caption with 20 words for the image in English", img])
-                tags = model.generate_content(["Generate 10 trending hashtags for the image in a line in English", img])
-                st.image(img, caption=f"Caption: {caption.text}")
-                st.write(f"Tags: {tags.text}")
-            else:
-                st.error("API Key is not configured. Please add your API key in the navbar.")
-        except Exception as e:
-            st.error(f"Failed to generate caption due to: {str(e)}")
+        st.subheader("Chat History")
+        for role, text in st.session_state['chat_history']:
+            st.write(f"{role}: {text}")
 
-elif page == "PDF Reader":
-    st.header("PDF Reader")
-    uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
-    if uploaded_files:
-        text = get_pdf_text(uploaded_files)
-        text_chunks = get_text_chunks(text)
-        get_vector_store(text_chunks)
-        st.write("PDF text and vector store created successfully! text feature coming SOON")
+    elif page == "Image Captioning":
+        st.title("Generate Caption with Hashtags")
+        uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+        if uploaded_file is not None and st.button('Upload'):
+            try:
+                if st.session_state['api_key']:
+                    genai.configure(api_key=st.session_state['api_key'])
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    img = Image.open(uploaded_file)
+                    caption = model.generate_content(["Write a short caption with 20 words for the image in English", img])
+                    tags = model.generate_content(["Generate 10 trending hashtags for the image in a line in English", img])
+                    st.image(img, caption=f"Caption: {caption.text}")
+                    st.write(f"Tags: {tags.text}")
+                else:
+                    st.error("API Key is not configured. Please add your API key in the navbar.")
+            except Exception as e:
+                st.error(f"Failed to generate caption due to: {str(e)}")
 
-elif page == "YouTube Summarizer":
-    st.header("YouTube Video Summarizer")
-    youtube_link = st.text_input("Enter the YouTube Video URL:")
-    if youtube_link:
-        video_id = youtube_link.split("=")[1]
-        st.image(f"http://img.youtube.com/vi/{video_id}/0.jpg", use_column_width=True)
+    elif page == "PDF Reader":
+        st.header("PDF Reader")
+        uploaded_files = st.file_uploader("Upload PDF files", type="pdf", accept_multiple_files=True)
+        if uploaded_files:
+            text = get_pdf_text(uploaded_files)
+            text_chunks = get_text_chunks(text)
+            get_vector_store(text_chunks)
+            st.write("PDF text and vector store created successfully! text feature coming SOON")
 
-    if st.button("Get Summary"):
-        transcript_text = extract_transcript_details(youtube_link)
-        if transcript_text:
-            summary = generate_gemini_content(transcript_text, "summarize this text pointwise")
-            if summary:
-                st.write(summary)
+    elif page == "YouTube Summarizer":
+        st.header("YouTube Video Summarizer")
+        youtube_link = st.text_input("Enter the YouTube Video URL:")
+        if youtube_link:
+            video_id = youtube_link.split("=")[1]
+            st.image(f"http://img.youtube.com/vi/{video_id}/0.jpg", use_column_width=True)
+
+        if st.button("Get Summary"):
+            transcript_text = extract_transcript_details(youtube_link)
+            if transcript_text:
+                summary = generate_gemini_content(transcript_text, "summarize this text pointwise")
+                if summary:
+                    st.write(summary)
+
+except Exception as e:
+    st.error("OOPS! SOMETHING WENT WRONG.")
+    st.error(f"Error details: {str(e)}")
