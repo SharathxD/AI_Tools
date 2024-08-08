@@ -53,7 +53,6 @@ def get_text_chunks(text):
 # Function to get vector store
 def get_vector_store(text_chunks):
     embeddings = langchain_google_genai.GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=st.session_state['api_key'])
-    embeddings = langchain_google_genai.GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=st.session_state['api_key'])
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     vector_store.save_local("faiss_index")
 
@@ -76,7 +75,6 @@ def get_conversational_chain():
 def extract_transcript_details(youtube_video_url):
     try:
         video_id = youtube_video_url.split("=")[1]
-        transcript_text = youtube_transcript_api.YouTubeTranscriptApi.get_transcript(video_id, languages=('en',))
         transcript_text = youtube_transcript_api.YouTubeTranscriptApi.get_transcript(video_id, languages=('en',))
         transcript = ""
         for i in transcript_text:
@@ -120,37 +118,11 @@ try:
         for idx, image_path in enumerate(images):
             with cols[idx % 3]:
                 st.image(image_path, use_column_width=True)
-    with st.sidebar:
-        st.header("Navigation")
-        page = st.selectbox("Go to", ["Home", "ChatBot", "Image Captioning", "PDF Reader", "YouTube Summarizer"])
+    
 
-        st.header("API Key Configuration")
-        api_key_input = st.text_input("Enter your Google API Key", type="password")
-        if st.button("Set API Key"):
-            configure_api_key(api_key_input)
-            st.success("API Key set successfully!")
-        st.markdown("Don't have an API key? Generate [Here](https://aistudio.google.com/app/apikey)")
+    
 
-    if page == "Home":
-        st.header("Welcome to the AI Tools Application")
-        images = ["image1.jpg", "image2.jpg", "image3.jpg", "image4.jpg", "image5.jpg", "image6.jpg"]
-        cols = st.columns(3)
-        
-        for idx, image_path in enumerate(images):
-            with cols[idx % 3]:
-                st.image(image_path, use_column_width=True)
-
-    if page == "ChatBot":
-        st.title("ChatBot Service")
-        user_input = st.text_input("Input:", key="input")
-        submit = st.button("Ask the Question")
-        if submit and user_input:
-            response = get_gemini_response(user_input)
-            st.session_state['chat_history'].append(("You", user_input))
-            st.subheader("Response")
-            for chunk in response:
-                st.write(chunk.text)
-                st.session_state['chat_history'].append(("Bot", chunk.text))
+     
     if page == "ChatBot":
         st.title("ChatBot Service")
         user_input = st.text_input("Input:", key="input")
@@ -166,10 +138,6 @@ try:
         st.subheader("Chat History")
         for role, text in st.session_state['chat_history']:
             st.write(f"{role}: {text}")
-        st.subheader("Chat History")
-        for role, text in st.session_state['chat_history']:
-            st.write(f"{role}: {text}")
-
     elif page == "Image Captioning":
         st.title("Generate Caption with Hashtags")
         uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
@@ -203,7 +171,7 @@ try:
         if youtube_link:
             video_id = youtube_link.split("=")[1]
             st.image(f"http://img.youtube.com/vi/{video_id}/0.jpg", use_column_width=True)
-    
+
         if st.button("Get Summary"):
             transcript_text = extract_transcript_details(youtube_link)
             if transcript_text:
