@@ -6,3 +6,4 @@ PyPDF2
 langchain-google-genai
 youtube-transcript-api
 langchain-community
+faiss-cpu
