@@ -241,5 +241,5 @@ try:
                 if summary:
                     st.write(summary)
 
-except Exception:
-    st.error("OOPS! SOMETHING WENT WRONG.")
+except Exception as e:
+    st.error(f"OOPS! SOMETHING WENT WRONG.{str(e)}")
