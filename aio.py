@@ -20,6 +20,9 @@ if 'pdf_chat_history' not in st.session_state:
 if 'pdf_chat_mode' not in st.session_state:
     st.session_state['pdf_chat_mode'] = False
 
+if 'chat_history' not in st.session_state:
+    st.session_state['chat_history'] = []
+
 st.set_page_config(page_title="Tools AI", page_icon="🌐", layout="wide")
 
 # Function to configure Google API key
@@ -155,7 +158,7 @@ try:
                     genai.configure(api_key=st.session_state['api_key'])
                     model = genai.GenerativeModel('gemini-1.5-flash')
                     img = Image.open(uploaded_file)
-                    caption = model.generate_content(["Write a short caption with 20 words for the image in English", img])
+                    caption = model.generate_content(["Generate a detailed caption that accurately describes the content, mood, and potential story of the image in english", img])
                     tags = model.generate_content(["Generate 10 trending hashtags for the image in a line in English", img])
                     st.image(img, caption=f"Caption: {caption.text}")
                     st.write(f"Tags: {tags.text}")
@@ -182,7 +185,7 @@ try:
 
             if summarize_button:
                 with st.spinner('Summarizing...'):
-                    summary = generate_gemini_content(text, "Summarize this PDF into 10-15 key points: ")
+                    summary = generate_gemini_content(text, "Provide a detailed summary of the following text, ensuring all key points, arguments, and supporting details are included. Maintain the original text's structure and flow as much as possible")
                     if summary:
                         st.subheader("Summary")
                         st.write(summary)
@@ -198,22 +201,31 @@ try:
                     submit_question = st.form_submit_button("Send")
 
                 if submit_question and question:
-                    chain = get_conversational_chain(api_key_input)
-                    vector_store = FAISS.load_local("faiss_index", embeddings=langchain_google_genai.GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=st.session_state['api_key']), allow_dangerous_deserialization=True)
-                    docs = vector_store.similarity_search(question)
-                    answer = chain.run(input_documents=docs, question=question)
-                    
-                    # Save to chat history
-                    st.session_state['pdf_chat_history'].append(("You", question))
-                    st.session_state['pdf_chat_history'].append(("Bot", answer))
-                    
-                    # Display the answer
-                    st.subheader("Answer")
-                    st.write(answer)
+                    try:
+                        chain = get_conversational_chain(api_key_input)
+                        vector_store = FAISS.load_local(
+                            "faiss_index",
+                            embeddings=langchain_google_genai.GoogleGenerativeAIEmbeddings(
+                                model="models/embedding-001", 
+                                google_api_key=st.session_state['api_key']
+                            ),
+                            allow_dangerous_deserialization=True
+                        )
+                        docs = vector_store.similarity_search(question)
+                        answer = chain.run(input_documents=docs, question=question)
 
-                st.subheader("Chat History")
-                for role, text in st.session_state['pdf_chat_history']:
-                    st.write(f"{role}: {text}")
+                        # Save to chat history
+                        st.session_state['pdf_chat_history'].append(("You", question))
+                        st.session_state['pdf_chat_history'].append(("Bot", answer))
+
+                        # Display the answer
+                        st.subheader("Answer")
+                        st.write(answer)
+                    except Exception as e:
+                        if not st.session_state['api_key']:
+                            st.error("Enter your API key.")
+                        else:
+                            st.error(f"OOPS! SOMETHING WENT WRONG: {str(e)}")
 
     elif page == "YouTube Summarizer":
         st.header("YouTube Video Summarizer")
@@ -225,10 +237,9 @@ try:
         if st.button("Get Summary"):
             transcript_text = extract_transcript_details(youtube_link)
             if transcript_text:
-                summary = generate_gemini_content(transcript_text, "Summarize this text pointwise")
+                summary = generate_gemini_content(transcript_text, "Provide a detailed summary of the following text, ensuring all key points, arguments, and supporting details are included. Maintain the original text's structure and flow as much as possible")
                 if summary:
                     st.write(summary)
 
-except Exception as e:
-    st.error(f"OOPS! SOMETHING WENT WRONG: {str(e)}")
-vector_store = FAISS.load_local("faiss_index", embeddings=langchain_google_genai.GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=st.session_state['api_key']), allow_dangerous_deserialization=True)
+except Exception:
+    st.error("OOPS! SOMETHING WENT WRONG.")
