@@ -23,7 +23,7 @@ if 'pdf_chat_mode' not in st.session_state:
 if 'chat_history' not in st.session_state:
     st.session_state['chat_history'] = []
 
-st.set_page_config(page_title="Tools AI", page_icon="🌐", layout="wide")
+st.set_page_config(page_title="Tools AI", page_icon="🧑‍💻", layout="wide")
 
 # Function to configure Google API key
 def configure_api_key(api_key):
