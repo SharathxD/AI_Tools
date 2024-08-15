@@ -23,7 +23,7 @@ if 'pdf_chat_mode' not in st.session_state:
 if 'chat_history' not in st.session_state:
     st.session_state['chat_history'] = []
 
-st.set_page_config(page_title="Tools AI", page_icon="🌐", layout="wide")
+st.set_page_config(page_title="Tools AI", page_icon="🧑‍💻", layout="wide")
 
 # Function to configure Google API key
 def configure_api_key(api_key):
@@ -158,7 +158,7 @@ try:
                     genai.configure(api_key=st.session_state['api_key'])
                     model = genai.GenerativeModel('gemini-1.5-flash')
                     img = Image.open(uploaded_file)
-                    caption = model.generate_content(["Write a short caption with 20 words for the image in English", img])
+                    caption = model.generate_content(["Generate a detailed caption that accurately describes the content, mood, and potential story of the image in english", img])
                     tags = model.generate_content(["Generate 10 trending hashtags for the image in a line in English", img])
                     st.image(img, caption=f"Caption: {caption.text}")
                     st.write(f"Tags: {tags.text}")
@@ -185,7 +185,7 @@ try:
 
             if summarize_button:
                 with st.spinner('Summarizing...'):
-                    summary = generate_gemini_content(text, "Summarize this PDF into 10-15 key points: ")
+                    summary = generate_gemini_content(text, "Provide a detailed summary of the following text, ensuring all key points, arguments, and supporting details are included. Maintain the original text's structure and flow as much as possible")
                     if summary:
                         st.subheader("Summary")
                         st.write(summary)
@@ -237,9 +237,9 @@ try:
         if st.button("Get Summary"):
             transcript_text = extract_transcript_details(youtube_link)
             if transcript_text:
-                summary = generate_gemini_content(transcript_text, "summarize this text pointwise")
+                summary = generate_gemini_content(transcript_text, "Provide a detailed summary of the following text, ensuring all key points, arguments, and supporting details are included. Maintain the original text's structure and flow as much as possible")
                 if summary:
                     st.write(summary)
 
-except Exception as e:
-    st.error(f"OOPS! SOMETHING WENT WRONG.{str(e)}")
+except Exception:
+    st.error("OOPS! SOMETHING WENT WRONG.")
