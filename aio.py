@@ -38,7 +38,7 @@ def get_gemini_response(question):
         response = chat.send_message(question, stream=True)
         return response
     else:
-        st.error("API Key is not configured. Please add your API key in the navbar.")
+        st.error("API Key is not added. Please add your API key in the navbar.")
 
 # Function to get PDF text
 def get_pdf_text(pdf_docs):
