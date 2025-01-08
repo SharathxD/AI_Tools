@@ -131,7 +131,7 @@ try:
         
         for idx, image_path in enumerate(images):
             with cols[idx % 3]:
-                st.image(image_path, use_column_width=True)
+                st.image(image_path, use_container_width=True)
     
     if page == "ChatBot":
         st.title("ChatBot Service")
